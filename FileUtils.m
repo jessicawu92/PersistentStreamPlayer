@@ -19,6 +19,7 @@
 + (BOOL)moveFileFromURL:(NSURL *)oldURL
                   toURL:(NSURL *)newURL
 {
+    [[NSFileManager defaultManager] removeItemAtURL:newURL error:nil];
     [[NSFileManager defaultManager] createDirectoryAtPath:newURL.path.stringByDeletingLastPathComponent
                               withIntermediateDirectories:YES
                                                attributes:nil

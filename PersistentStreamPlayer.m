@@ -29,8 +29,6 @@
 
 @property (nonatomic, assign) BOOL connectionHasFinishedLoading;
 
-@property (nonatomic, strong) AVAudioPlayer *loopingLocalAudioPlayer;
-
 @property (nonatomic, assign) BOOL isDestroyed;
 
 @end
@@ -70,10 +68,6 @@
     [asset.resourceLoader setDelegate:self queue:dispatch_get_main_queue()];
     AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset automaticallyLoadedAssetKeys:@[@"duration"]];
     self.player = [[AVPlayer alloc] initWithPlayerItem:playerItem];
-    [self.player.currentItem addObserver:self
-                              forKeyPath:@"status"
-                                 options:NSKeyValueObservingOptionNew
-                                 context:NULL];
 }
 
 - (void)addObservers
@@ -97,7 +91,6 @@
 {
     [self.player pause];
     [self stopHealthCheckTimer];
-    [self.loopingLocalAudioPlayer pause];
 }
 
 - (void)destroy
@@ -112,7 +105,6 @@
     [self stopHealthCheckTimer];
     [self.player pause];
 
-    [self.player.currentItem removeObserver:self forKeyPath:@"status"];
     [self.player.currentItem cancelPendingSeeks];
     [self.player.currentItem.asset cancelLoading];
     self.player.rate = 0.0;
@@ -120,9 +112,6 @@
 
     [self.connection cancel];
     self.connection = nil;
-
-    [self.loopingLocalAudioPlayer stop];
-    self.loopingLocalAudioPlayer = nil;
 }
 
 - (NSURL *)audioRemoteStreamingURL
@@ -141,14 +130,10 @@
 {
     [self.player play];
     [self startHealthCheckTimer];
-    [self.loopingLocalAudioPlayer play];
 }
 
 - (BOOL)playing
 {
-    if (self.loopingLocalAudioPlayer) {
-        return self.loopingLocalAudioPlayer.playing;
-    }
     return self.player.rate != 0 && !self.player.error;
 }
 
@@ -217,16 +202,12 @@
 
 - (float)volume
 {
-    return self.loopingLocalAudioPlayer ? self.loopingLocalAudioPlayer.volume : self.player.volume;
+    return self.player.volume;
 }
 
 - (void)setVolume:(float)volume
 {
-    if (self.loopingLocalAudioPlayer) {
-        self.loopingLocalAudioPlayer.volume = volume;
-    } else if (self.player) {
-        self.player.volume = volume;
-    }
+    self.player.volume = volume;
 }
 
 #pragma mark - AVURLAsset resource loading
@@ -376,21 +357,6 @@ shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loading
     if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidFinishPlaying:)]) {
         [self.delegate persistentStreamPlayerDidFinishPlaying:self];
     }
-    [self tryToStartLocalLoop];
-}
-
-- (void)tryToStartLocalLoop
-{
-    if (!self.looping) {
-        return;
-    }
-
-    self.loopingLocalAudioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:self.localURL
-                                                                          error:nil];
-    [self.loopingLocalAudioPlayer prepareToPlay];
-    self.loopingLocalAudioPlayer.numberOfLoops = -1;
-    self.loopingLocalAudioPlayer.volume = 1.0;
-    [self.loopingLocalAudioPlayer play];
 }
 
 - (void)playerItemDidStall:(NSNotification *)notification
@@ -463,9 +429,6 @@ shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loading
 
 - (NSTimeInterval)currentTime
 {
-    if (self.loopingLocalAudioPlayer) {
-        return self.loopingLocalAudioPlayer.currentTime;
-    }
     return CMTimeGetSeconds(self.player.currentTime);
 }
 

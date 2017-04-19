@@ -24,6 +24,7 @@
 @property (nonatomic, assign) BOOL looping;
 @property (nonatomic, readonly) BOOL playing;
 @property (nonatomic, assign) float volume;
+@property (nonatomic, readonly) AVPlayer * _Nonnull player;
 
 - (void)play;
 - (void)pause;
