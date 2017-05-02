@@ -63,8 +63,13 @@
 - (void)prepareToPlay
 {
     self.pendingRequests = [NSMutableArray array];
+    AVURLAsset *asset;
+    if ([self localFileExists]) {
+        asset = [AVURLAsset URLAssetWithURL:self.localURL options:nil];
+    } else {
+        asset = [AVURLAsset URLAssetWithURL:self.audioRemoteStreamingURL options:nil];
+    }
 
-    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:self.audioRemoteStreamingURL options:nil];
     [asset.resourceLoader setDelegate:self queue:dispatch_get_main_queue()];
     AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset automaticallyLoadedAssetKeys:@[@"duration"]];
     self.player = [[AVPlayer alloc] initWithPlayerItem:playerItem];
@@ -175,6 +180,12 @@
 {
     return [[NSFileManager defaultManager] fileExistsAtPath:self.tempURL.path];
 }
+    
+- (BOOL)localFileExists
+    {
+        //TODO: this should also do some sanity check on the file
+        return [[NSFileManager defaultManager] fileExistsAtPath:self.localURL.path];
+    }
 
 - (NSData *)dataFromFileInRange:(NSRange)range
 {
