@@ -211,6 +211,27 @@
     }
 }
 
+- (void)connection:(NSURLConnection *)connection
+  didFailWithError:(NSError *)error{
+    
+    for (AVAssetResourceLoadingRequest *loadingRequest in self.pendingRequests) {
+        NSURLComponents * component = [[NSURLComponents alloc] initWithURL:loadingRequest.request.URL resolvingAgainstBaseURL:NO];
+        component.scheme = self.originalURLScheme ?: @"http";
+        
+        if ([component.URL.absoluteString isEqualToString: connection.currentRequest.URL.absoluteString] ) {
+            [loadingRequest finishLoadingWithError:error];
+            [self.pendingRequests removeObject:loadingRequest];
+        }
+    }
+    
+    if ([self.pendingRequests count] == 0) {
+        if ([self.delegate respondsToSelector:@selector(persistentStreamPlayerDidFailToLoadAsset:)]) {
+            [self.delegate persistentStreamPlayerDidFailToLoadAsset:self];
+        }
+    }
+    
+}
+
 - (float)volume
 {
     return self.player.volume;
