@@ -151,6 +151,11 @@
 }
 
 #pragma mark - NSURLConnection delegate
+- (void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
+{
+    [self.delegate persistentStreamPlayerWillSendRequestForAuthenticationChallenge:challenge];
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
     self.fullAudioDataLength = 0;

@@ -13,6 +13,9 @@
 - (void)persistentStreamPlayerDidLoadAsset:(nonnull PersistentStreamPlayer *)player;
 - (void)persistentStreamPlayerDidFailToLoadAsset:(nonnull PersistentStreamPlayer *)player;
 
+- (void)persistentStreamPlayerWillSendRequestForAuthenticationChallenge:(nonnull NSURLAuthenticationChallenge *)challenge;
+
+
 @end
 
 @interface PersistentStreamPlayer : NSObject
