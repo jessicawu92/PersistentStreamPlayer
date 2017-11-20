@@ -191,7 +191,12 @@
 - (BOOL)localFileExists
     {
         //TODO: this should also do some sanity check on the file
-        return [[NSFileManager defaultManager] fileExistsAtPath:self.localURL.path];
+        
+        // Check if the content stored in the file is playable, if not try to get the file from the server again.
+        NSURL *localFileURL = [[NSURL alloc] initFileURLWithPath:self.localURL.path];
+        AVAsset *asset = [AVAsset assetWithURL:localFileURL];
+     
+        return asset.isPlayable ? [[NSFileManager defaultManager] fileExistsAtPath:self.localURL.path] : NO;
     }
 
 - (NSData *)dataFromFileInRange:(NSRange)range
