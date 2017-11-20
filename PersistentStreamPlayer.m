@@ -166,7 +166,9 @@
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     self.fullAudioDataLength += data.length;
-    [self appendDataToTempFile:data];
+    if (self.response.statusCode == 200) {
+        [self appendDataToTempFile:data];
+    }
     [self processPendingRequests];
 }
 
